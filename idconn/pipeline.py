@@ -41,9 +41,9 @@ def _get_parser():
                         help='Task to be analyzed.')
     parser.add_argument('--out_dir', type=str, help='Overwrites automatic idconn derivatives path.')
 
-    parser.add_argument('--space', type=str,
+    parser.add_argument('--space', type=str, default='MNI152NLin2009cAsym',
                         help='Space in which to run analyses (must be the space `atlas` is in.')
-    parser.add_argument('--conn', type=str,
+    parser.add_argument('--conn', type=str, default='correlation',
                         help='Metric used to calculate connectivity. Must be one of {“covariance”, “correlation”, “partial correlation”, “tangent”, “precision”}.')
     parser.add_argument('--bids_db', type=str, help='Path to saved BIDS dataset layout file.')
     parser.add_argument('--confounds', nargs="+", help='Names of confound regressors from ')
@@ -51,7 +51,7 @@ def _get_parser():
     return parser
 
 
-def idconn_workflow(dset_dir, atlas, task, out_dir, space="MNI152NLin2009cAsym", conn="correlation", bids_db=None, confounds=None):
+def idconn_workflow(dset_dir, atlas, task, out_dir, space="MNI152NLin2009cAsym", conn=None, bids_db=None, confounds=None):
     print('Getting started!')
 
     if not confounds:
@@ -88,17 +88,28 @@ def idconn_workflow(dset_dir, atlas, task, out_dir, space="MNI152NLin2009cAsym",
         print(f"Sessions with task-{task} found for {subject}: {sessions}")
         for session in sessions:
             print(f"Session {session}")
+            print(f"here are the inputs: {layout, subject, session, task, atlas, conn, space, confounds}")
             if 'rest' in task:
-                adj_matrix = build_networks.connectivity(layout, subject, session, task, atlas, conn, space, confounds)
+                try:
+                    adj_matrix = build_networks.connectivity(layout, subject, session, task, atlas, conn, space, confounds)
+                except Exception as e:
+                    print(f'Error building corrmat for sub-{subject}, ses-{session}, task-{task}: {e}')
             if len(conditions) < 1:
-                adj_matrix = build_networks.connectivity(layout, subject, session, task, atlas, conn, space, confounds)
+                try:
+                    adj_matrix = build_networks.connectivity(layout, subject, session, task, atlas, conn, space, confounds)
+                except Exception as e:
+                    print(f'Error building corrmat for sub-{subject}, ses-{session}, task-{task}: {e}')
             else:
-                adj_matrix = build_networks.task_connectivity(layout, subject, session, task, atlas, conn, space, confounds)
+                try:
+                    adj_matrix = build_networks.task_connectivity(layout=layout, subject=subject, session=session, task=task, atlas=atlas, confounds=confounds, connectivity_metric=conn)
+                except Exception as e:
+                    print(f'Error building corrmat for sub-{subject}, ses-{session}, task-{task}: {e}')
 
 
 def _main(argv=None):
     """Tedana entry point"""
     options = _get_parser().parse_args(argv)
+    print(options)
     idconn_workflow(**vars(options))
 
 
