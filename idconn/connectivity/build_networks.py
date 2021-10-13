@@ -83,7 +83,7 @@ def task_connectivity(layout, subject, session, task, atlas, confounds, connecti
             makedirs(out)
     
     event_files = layout.get(return_type='filename', suffix='events', task=task, subject=subject)
-    timing = pd.read_csv(event_files[0], header=0, index_col=0, sep='\t')
+    timing = pd.read_table(event_files[0])
     conditions = timing['trial_type'].unique()
 
     run_cond = {}
@@ -99,12 +99,12 @@ def task_connectivity(layout, subject, session, task, atlas, confounds, connecti
         print('# of event files =', len(event_file), '\nfilename = ', event_file[0])
         the_file = str(event_file[0])
         assert exists(the_file), 'file really does not exist'
-        timing = pd.read_csv(the_file, header=0, index_col=0, sep='\t')
+        timing = pd.read_table(the_file)
         timing.sort_values('onset')
 
         confounds_file = layout.get(scope='derivatives', return_type='file', desc='confounds',subject=subject,session=session, task=task, run=run, extension='tsv')
         print(f'Confounds file located at: {confounds_file}')
-        confounds_df = pd.read_csv(confounds_file[0], header=0, sep='\t')
+        confounds_df = pd.read_table(confounds_file[0])
         confounds_df = confounds_df[confounds].fillna(0)
         confounds_fname = join(deriv_dir,  f'sub-{subject}', f'ses-{session}', 'func', f'sub-{subject}_ses-{session}_task-{task}_run-{run}_desc-confounds_timeseries.tsv')
         confounds_df.to_csv(confounds_fname, sep='\t')
@@ -223,7 +223,7 @@ def connectivity(layout, subject, session, task, atlas, connectivity_metric='cor
     
     
     #event_files = layout.get(return_type='filename', suffix='events', task=task, subject=subject)
-    #timing = pd.read_csv(event_files[0], header=0, index_col=0, sep='\t')
+    #timing = pd.read_table(event_files[0])
     #conditions = timing['trial_type'].unique()
 
     if runs:
@@ -235,7 +235,7 @@ def connectivity(layout, subject, session, task, atlas, connectivity_metric='cor
 
             confounds_file = layout.get(scope='derivatives', return_type='file', desc='confounds',subject=subject,session=session, task=task, run=run, extension='tsv')
             print(f'Confounds file located at: {confounds_file}')
-            confounds_df = pd.read_csv(confounds_file[0], header=0, sep='\t')
+            confounds_df = pd.read_table(confounds_file[0])
             confounds_df = confounds_df[confounds].fillna(0)
             confounds_fname = join(deriv_dir,  f'sub-{subject}', f'ses-{session}', 'func', f'sub-{subject}_ses-{session}_task-{task}_run-{run}_desc-confounds_timeseries.tsv')
             confounds_df.to_csv(confounds_fname, sep='\t')
@@ -269,7 +269,7 @@ def connectivity(layout, subject, session, task, atlas, connectivity_metric='cor
     else:
         confounds_file = layout.get(scope='derivatives', return_type='file', desc='confounds',subject=subject,session=session, task=task, extension='tsv')
         print(f'Confounds file located at: {confounds_file}')
-        confounds_df = pd.read_csv(confounds_file[0], header=0, sep='\t')
+        confounds_df = pd.read_table(confounds_file[0])
         confounds_df = confounds_df[confounds].fillna(0)
         confounds_fname = join(deriv_dir,  f'sub-{subject}', f'ses-{session}', 'func', f'sub-{subject}_ses-{session}_task-{task}_desc-confounds_timeseries.tsv')
         confounds_df.to_csv(confounds_fname, sep='\t')
